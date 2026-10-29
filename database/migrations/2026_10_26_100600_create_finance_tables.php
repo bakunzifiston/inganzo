@@ -90,7 +90,7 @@ return new class extends Migration
         DB::unprepared(<<<'SQL'
             CREATE TRIGGER ledger_entries_append_only
                 BEFORE UPDATE OR DELETE ON ledger_entries
-                FOR EACH ROW EXECUTE FUNCTION prevent_mutation();
+                FOR EACH ROW EXECUTE PROCEDURE prevent_mutation();
         SQL);
     }
 

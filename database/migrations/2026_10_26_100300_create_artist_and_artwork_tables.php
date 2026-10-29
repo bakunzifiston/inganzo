@@ -77,12 +77,22 @@ return new class extends Migration
             $table->index(['artist_profile_id', 'status']);
         });
 
+        // A trigger instead of a generated column keeps this working on PostgreSQL < 12.
+        DB::statement('ALTER TABLE artworks ADD COLUMN search_vector tsvector');
         DB::statement(<<<'SQL'
-            ALTER TABLE artworks ADD COLUMN search_vector tsvector
-            GENERATED ALWAYS AS (
-                setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
-                setweight(to_tsvector('simple', coalesce(description, '')), 'B')
-            ) STORED
+            CREATE OR REPLACE FUNCTION artworks_search_vector_update() RETURNS trigger AS $$
+            BEGIN
+                NEW.search_vector :=
+                    setweight(to_tsvector('simple', coalesce(NEW.title, '')), 'A') ||
+                    setweight(to_tsvector('simple', coalesce(NEW.description, '')), 'B');
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql
+        SQL);
+        DB::statement(<<<'SQL'
+            CREATE TRIGGER artworks_search_vector_trigger
+                BEFORE INSERT OR UPDATE OF title, description ON artworks
+                FOR EACH ROW EXECUTE PROCEDURE artworks_search_vector_update()
         SQL);
         DB::statement('CREATE INDEX artworks_search_vector_idx ON artworks USING GIN (search_vector)');
 

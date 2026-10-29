@@ -62,8 +62,9 @@ return new class extends Migration
                 ->comment('Null covers every zone in the country.');
             $table->timestampsTz();
 
-            $table->unique(['printing_partner_id', 'country_id', 'delivery_zone_id'])->nullsNotDistinct();
         });
+
+        DB::statement("CREATE UNIQUE INDEX partner_service_areas_partner_country_zone_unique ON partner_service_areas (printing_partner_id, country_id, COALESCE(delivery_zone_id, 0))");
 
         Schema::create('production_jobs', function (Blueprint $table) {
             $table->id();

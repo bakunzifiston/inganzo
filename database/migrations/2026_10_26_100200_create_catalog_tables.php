@@ -95,8 +95,9 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestampsTz();
 
-            $table->unique(['product_id', 'product_color_id', 'product_size_id'])->nullsNotDistinct();
         });
+
+        DB::statement("CREATE UNIQUE INDEX product_variants_product_color_size_unique ON product_variants (product_id, product_color_id, COALESCE(product_size_id, 0))");
 
         Schema::create('print_areas', function (Blueprint $table) {
             $table->id();
@@ -129,8 +130,9 @@ return new class extends Migration
             $table->unsignedSmallInteger('position')->default(0);
             $table->timestampsTz();
 
-            $table->unique(['product_id', 'print_area_id', 'product_color_id', 'view'])->nullsNotDistinct();
         });
+
+        DB::statement("CREATE UNIQUE INDEX product_mockups_product_area_color_view_unique ON product_mockups (product_id, print_area_id, COALESCE(product_color_id, 0), view)");
 
         Schema::create('pricing_rules', function (Blueprint $table) {
             $table->id();

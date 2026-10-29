@@ -67,8 +67,9 @@ return new class extends Migration
             $table->unsignedSmallInteger('position')->default(0);
             $table->timestampsTz();
 
-            $table->unique(['finished_product_id', 'color_name', 'size_label'])->nullsNotDistinct();
         });
+
+        DB::statement("CREATE UNIQUE INDEX finished_product_variants_product_color_size_unique ON finished_product_variants (finished_product_id, COALESCE(color_name, ''), COALESCE(size_label, ''))");
 
         Schema::create('finished_product_images', function (Blueprint $table) {
             $table->id();

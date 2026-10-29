@@ -53,10 +53,12 @@ class Settings
      */
     public function all(): array
     {
-        return Cache::rememberForever('platform-settings', fn () => array_merge(
-            self::DEFAULTS,
-            Setting::query()->pluck('value', 'key')->all(),
-        ));
+        $stored = Cache::rememberForever(
+            'platform-settings',
+            fn () => Setting::query()->pluck('value', 'key')->all(),
+        );
+
+        return array_merge(self::DEFAULTS, $stored);
     }
 
     public function set(string $key, mixed $value, ?User $actor = null): void
